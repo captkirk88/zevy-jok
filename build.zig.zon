@@ -1,0 +1,30 @@
+.{
+    .name = .zevy_jok,
+    .version = "0.1.0",
+
+    .fingerprint = 0x46aec3ab8a6cfd4c, // Changing this has security and trust implications.
+
+    .minimum_zig_version = "0.16.0-dev",
+    .dependencies = .{
+        .zevy_buildtools = .{
+            .url = "git+https://github.com/captkirk88/zevy-buildtools#88cd52945acc7cd70d916fb185c0b6e7864b8fac",
+            .hash = "zevy_buildtools-1.0.0-AG3r_F6RAAD0Bqyn4nImjfm0JKQoL0F4f7OJAyZ8bO5d",
+        },
+        .jok = .{
+            .url = "git+https://github.com/jack-ji/jok#db5eb89f12f6c4ed9ef02df46edd13e88a65cb51",
+            .hash = "jok-0.100.8-NH_NkkUDPAFyB_2BwRGewkdU7MxvPcgmvSy_XIWKx_Ni",
+        },
+        .zevy_ecs = .{
+            .url = "git+https://github.com/captkirk88/zevy-ecs#6c38780d0bc0bdfd4b8f63a459166dcefebff11b",
+            .hash = "zevy_ecs-1.57.0-VoL9mVr8BgBk7BNWwbIMSWL8TuHREI8h-QQLAf1Y2MwY",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        // For example...
+        "LICENSE",
+        //"README.md",
+    },
+}
