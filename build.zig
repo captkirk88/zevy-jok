@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
     });
     const zevy_ecs = zevy_ecs_dep.module("zevy_ecs");
-    const benchmark = zevy_ecs_dep.module("benchmark");
+    //const benchmark = zevy_ecs_dep.module("benchmark");
     const plugins = zevy_ecs_dep.module("plugins");
 
     const jok_dep = jok.getJokLibrary(b, target, optimize, .{});
@@ -25,7 +25,6 @@ pub fn build(b: *std.Build) !void {
         .imports = &.{
             .{ .name = "zevy_ecs", .module = zevy_ecs },
             .{ .name = "plugins", .module = plugins },
-            .{ .name = "benchmark", .module = benchmark },
             .{ .name = "jok", .module = jok_dep.module },
             .{ .name = "sdl", .module = sdl },
         },
@@ -36,7 +35,6 @@ pub fn build(b: *std.Build) !void {
             .{ .name = "zevy_jok", .mod = mod },
             .{ .name = "zevy_ecs", .mod = zevy_ecs },
             .{ .name = "plugins", .mod = plugins },
-            .{ .name = "benchmark", .mod = benchmark },
             .{ .name = "jok", .mod = jok_dep.module },
             .{ .name = "sdl", .mod = sdl },
         },
