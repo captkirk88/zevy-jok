@@ -1,5 +1,6 @@
 const std = @import("std");
 const buildtools = @import("zevy_buildtools");
+const jok = @import("jok");
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
@@ -14,25 +15,34 @@ pub fn build(b: *std.Build) !void {
     const benchmark = zevy_ecs_dep.module("benchmark");
     const plugins = zevy_ecs_dep.module("plugins");
 
+    const jok_dep = jok.getJokLibrary(b, target, optimize, .{});
+    const sdl = jok.sdlModule(b, target, optimize, .{});
+
     const mod = b.addModule("zevy_jok", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "zevy_ecs", .module = zevy_ecs },
+            .{ .name = "plugins", .module = plugins },
+            .{ .name = "benchmark", .module = benchmark },
+            .{ .name = "jok", .module = jok_dep.module },
+            .{ .name = "sdl", .module = sdl },
+        },
     });
 
-    const exe = b.addExecutable(.{
-        .name = "zevy_jok",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
-            .target = target,
-            .optimize = optimize,
-            .imports = &.{
-                .{ .name = "zevy_jok", .module = mod },
-                .{ .name = "zevy_ecs", .module = zevy_ecs },
-                .{ .name = "plugins", .module = plugins },
-                .{ .name = "benchmark", .module = benchmark },
-            },
-        }),
+    const exe = jok.createDesktopApp(b, "zevy_jok", "src/main.zig", target, optimize, .{
+        .additional_deps = &.{
+            .{ .name = "zevy_jok", .mod = mod },
+            .{ .name = "zevy_ecs", .mod = zevy_ecs },
+            .{ .name = "plugins", .mod = plugins },
+            .{ .name = "benchmark", .mod = benchmark },
+            .{ .name = "jok", .mod = jok_dep.module },
+            .{ .name = "sdl", .mod = sdl },
+        },
     });
+
+    b.installArtifact(jok_dep.artifact);
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default

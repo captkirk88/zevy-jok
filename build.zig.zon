@@ -4,19 +4,20 @@
 
     .fingerprint = 0x46aec3ab8a6cfd4c, // Changing this has security and trust implications.
 
-    .minimum_zig_version = "0.16.0-dev",
+    .minimum_zig_version = "0.16.0-dev.3006+94355f192",
     .dependencies = .{
         .zevy_buildtools = .{
-            .url = "git+https://github.com/captkirk88/zevy-buildtools#88cd52945acc7cd70d916fb185c0b6e7864b8fac",
-            .hash = "zevy_buildtools-1.0.0-AG3r_F6RAAD0Bqyn4nImjfm0JKQoL0F4f7OJAyZ8bO5d",
+            .url = "git+https://github.com/captkirk88/zevy-buildtools#a56ce3e3d27020503b1e92587166acdfcfd521c9",
+            .hash = "zevy_buildtools-1.0.0-AG3r_F6RAAAeSEw9OxHJ_nkIvYpfoZY5zAOyMEqM_Yvp",
         },
-        .jok = .{
-            .url = "git+https://github.com/jack-ji/jok#4beeed1ce34ff49718e4d546e3774aad3054a1ac",
-            .hash = "jok-0.100.11-NH_Nknk-QAEKwDzbKIumAAeqPz2PiN_xWEAWgtaPKljq",
-        },
+        // .jok = .{
+        //     .url = "git+https://github.com/jack-ji/jok#f0f7893f669547c7c79d71cf7845e379b691b654",
+        //     .hash = "jok-0.101.0-NH_NkjU-QAH2WhVOMEmI0HQITF6-N8P4XpHyBAZKBpXi",
+        // },
+        .jok = .{ .path = "../lib-support" },
         .zevy_ecs = .{
-            .url = "git+https://github.com/captkirk88/zevy-ecs#279516927c8e05c67fa54b2556d9e2449179f5fe",
-            .hash = "zevy_ecs-1.57.0-VoL9mQv9BgA4cpnFaRcI45eOVB2op491_hFLZLjOnbOh",
+            .url = "git+https://github.com/captkirk88/zevy-ecs#c7b5267bd3fee8a7367cd6566ae27c169aaab091",
+            .hash = "zevy_ecs-2.3.1-VoL9mcs6CABc7JvcnFUpDZchMRYRERAXiPqbXnOuC9W5",
         },
     },
     .paths = .{
