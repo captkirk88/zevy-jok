@@ -1,10 +1,10 @@
 const std = @import("std");
-const Io = std.Io;
 const ecs = @import("zevy_ecs");
 const plugin = @import("plugins");
 const jok = @import("jok");
-const sdl = @import("sdl");
 const batchers = @import("batch.zig");
+const components = @import("../components/root.zig");
+const math = @import("../math.zig");
 
 pub fn RenderPlugin(comptime T: type) type {
     _ = T;
@@ -20,10 +20,15 @@ pub fn RenderPlugin(comptime T: type) type {
             };
         }
 
-        pub fn build(_: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
-            const render_pipeline2d = try manager.getOrAddResource(RenderPipeline2D, .init(manager.allocator), null);
-            _ = render_pipeline2d;
+        pub fn build(self: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
             _ = plugins;
+            _ = try manager.addResource(batchers.Batch, batchers.Batch.new(self.ctx));
+            if (manager.getResource(ecs.schedule.Scheduler)) |scheduler| {
+                const sched = scheduler.lockWrite();
+                defer sched.deinit();
+
+                sched.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.PreDraw), beginRender2d, ecs.DefaultParamRegistry);
+            }
         }
 
         pub fn deinit(_: *Self, allocator: std.mem.Allocator, manager: *ecs.Manager) anyerror!void {
@@ -33,15 +38,32 @@ pub fn RenderPlugin(comptime T: type) type {
     };
 }
 
-pub const RenderPipeline2D = struct {
-    const Self = @This();
+fn beginRender2d(batcher: ecs.ResMut(batchers.Batch), query_shapes: ecs.params.Query(struct {
+    shape: components.shape.Shape,
+    transform: components.Transform,
+    color: ?components.Color,
+})) !void {
+    const batch = batcher.get();
+    batch.begin2d();
+    defer batch.end2d();
 
-    batch: batchers.Batch(batchers.BatchType.@"2D"),
-
-    pub fn init(allocator: std.mem.Allocator) Self {
-        _ = allocator;
-        return Self{
-            .batch = .{},
-        };
+    const rend_2d: batchers.BatchPtr(.@"2D") = batch.get(.@"2D");
+    while (query_shapes.next()) |q| {
+        const color = q.color orelse &jok.Color.white;
+        const shape: *components.shape.Shape = q.shape;
+        const transform: *components.Transform = q.transform;
+        shape.setOrigin(math.Vector2.new(transform.getX(), transform.getY()));
+        switch (shape.*) {
+            .Circle => |circle| {
+                try rend_2d.circleFilled(circle, color.*, .{});
+            },
+            .Rectangle => |rect| {
+                _ = rect;
+            },
+            .Triangle => |tri| {
+                _ = tri;
+            },
+            else => {},
+        }
     }
-};
+}

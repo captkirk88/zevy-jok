@@ -7,6 +7,12 @@ pub fn build(b: *std.Build) !void {
 
     const optimize = b.standardOptimizeOption(.{});
 
+    const zevy_mem_dep = b.dependency("zevy_mem", .{
+        .optimize = optimize,
+        .target = target,
+    });
+    const zevy_mem = zevy_mem_dep.module("zevy_mem");
+
     const zevy_ecs_dep = b.dependency("zevy_ecs", .{
         .optimize = optimize,
         .target = target,
@@ -23,6 +29,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .imports = &.{
+            .{ .name = "zevy_mem", .module = zevy_mem },
             .{ .name = "zevy_ecs", .module = zevy_ecs },
             .{ .name = "plugins", .module = plugins },
             .{ .name = "jok", .module = jok_dep.module },
@@ -32,6 +39,7 @@ pub fn build(b: *std.Build) !void {
 
     const exe = jok.createDesktopApp(b, "zevy_jok", "src/main.zig", target, optimize, .{
         .additional_deps = &.{
+            .{ .name = "zevy_mem", .mod = zevy_mem },
             .{ .name = "zevy_jok", .mod = mod },
             .{ .name = "zevy_ecs", .mod = zevy_ecs },
             .{ .name = "plugins", .mod = plugins },

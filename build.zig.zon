@@ -16,8 +16,12 @@
         // },
         .jok = .{ .path = "../lib-support" },
         .zevy_ecs = .{
-            .url = "git+https://github.com/captkirk88/zevy-ecs#c7b5267bd3fee8a7367cd6566ae27c169aaab091",
-            .hash = "zevy_ecs-2.3.1-VoL9mcs6CABc7JvcnFUpDZchMRYRERAXiPqbXnOuC9W5",
+            .url = "git+https://github.com/captkirk88/zevy-ecs#6c55cd510b79f79a42cca3d4c26f678cadd9598b",
+            .hash = "zevy_ecs-2.3.2-VoL9mRFACABeVan9s8Hleti7a-Bxo6fARrP05G3fyKyx",
+        },
+        .zevy_mem = .{
+            .url = "git+https://github.com/captkirk88/zevy-mem#69a990772ac3d004dfc5f5e5f387bc80c7d6cdd7",
+            .hash = "zevy_mem-1.0.1-jK9L0bw7AwBtO0jXbqL54oGnMWndhXRBkjpPsA7tuhG1",
         },
     },
     .paths = .{

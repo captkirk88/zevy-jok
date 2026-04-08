@@ -26,10 +26,8 @@ pub fn WindowPlugin(comptime T: type) type {
         }
 
         pub fn build(self: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
-            _ = try manager.addResource(Window, .init(self.context.window()));
-            const context_ptr = try manager.addResource(jok.Context, self.context);
-            const context = context_ptr.lockWrite();
-            defer context.deinit();
+            _ = try manager.addResource(jok.Window, self.context.window());
+            _ = try manager.addResource(jok.Context, self.context);
             _ = plugins;
         }
 
@@ -39,13 +37,3 @@ pub fn WindowPlugin(comptime T: type) type {
         }
     };
 }
-
-pub const Window = struct {
-    window: jok.Window,
-
-    pub fn init(win: jok.Window) Window {
-        return Window{
-            .window = win,
-        };
-    }
-};
