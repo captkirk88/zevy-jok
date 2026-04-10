@@ -2,8 +2,8 @@ const std = @import("std");
 const ecs = @import("zevy_ecs");
 const plugin = @import("plugins");
 const jok = @import("jok");
-const batchers = @import("batch.zig");
-const components = @import("../components/root.zig");
+pub const batchers = @import("batch.zig");
+pub const components = @import("../components/root.zig");
 const math = @import("../math.zig");
 
 pub fn RenderPlugin(comptime T: type) type {
@@ -44,10 +44,9 @@ fn beginRender2d(batcher: ecs.ResMut(batchers.Batch), query_shapes: ecs.params.Q
     color: ?components.Color,
 })) !void {
     const batch = batcher.get();
-    batch.begin2d();
+    const rend_2d = batch.begin2d();
     defer batch.end2d();
 
-    const rend_2d: batchers.BatchPtr(.@"2D") = batch.get(.@"2D");
     while (query_shapes.next()) |q| {
         const color = q.color orelse &jok.Color.white;
         const shape: *components.shape.Shape = q.shape;

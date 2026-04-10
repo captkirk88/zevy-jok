@@ -10,18 +10,17 @@
             .url = "git+https://github.com/captkirk88/zevy-buildtools#a56ce3e3d27020503b1e92587166acdfcfd521c9",
             .hash = "zevy_buildtools-1.0.0-AG3r_F6RAAAeSEw9OxHJ_nkIvYpfoZY5zAOyMEqM_Yvp",
         },
-        // .jok = .{
-        //     .url = "git+https://github.com/jack-ji/jok#f0f7893f669547c7c79d71cf7845e379b691b654",
-        //     .hash = "jok-0.101.0-NH_NkjU-QAH2WhVOMEmI0HQITF6-N8P4XpHyBAZKBpXi",
-        // },
-        .jok = .{ .path = "../lib-support" },
+        .jok = .{
+            .url = "git+https://github.com/jack-ji/jok#9debd8674a2652a82d92675f9ab9a700ddf60c39",
+            .hash = "jok-0.102.1-NH_NkjtGQAG6MUBOeVQra-1cpfTQaZSnpA1aATDBv_96",
+        },
         .zevy_ecs = .{
-            .url = "git+https://github.com/captkirk88/zevy-ecs#6c55cd510b79f79a42cca3d4c26f678cadd9598b",
-            .hash = "zevy_ecs-2.3.2-VoL9mRFACABeVan9s8Hleti7a-Bxo6fARrP05G3fyKyx",
+            .url = "git+https://github.com/captkirk88/zevy-ecs#5bd499a591e38e9e598eb3ba7c1088410a51d377",
+            .hash = "zevy_ecs-2.3.2-VoL9mVpACAAT083gem7efKMELULX6OQQBZzTQgQeOSgM",
         },
         .zevy_mem = .{
-            .url = "git+https://github.com/captkirk88/zevy-mem#69a990772ac3d004dfc5f5e5f387bc80c7d6cdd7",
-            .hash = "zevy_mem-1.0.1-jK9L0bw7AwBtO0jXbqL54oGnMWndhXRBkjpPsA7tuhG1",
+            .url = "git+https://github.com/captkirk88/zevy-mem#1f9e5ec6af90148dcc218d24ca7cd2615178b0b7",
+            .hash = "zevy_mem-1.1.0-jK9L0Qg7AwBuDocGllXc0w8pgrJWV2DKAh659ViP5flb",
         },
     },
     .paths = .{

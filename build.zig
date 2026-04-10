@@ -2,6 +2,74 @@ const std = @import("std");
 const buildtools = @import("zevy_buildtools");
 const jok = @import("jok");
 
+const CommonDeps = struct {
+    zevy_mem: *std.Build.Module,
+    zevy_jok: *std.Build.Module,
+    zevy_ecs: *std.Build.Module,
+    plugins: *std.Build.Module,
+    jok: *std.Build.Module,
+    sdl: *std.Build.Module,
+};
+
+const AppOptions = struct {
+    additional_deps: []const jok.Dependency = &.{},
+};
+
+fn createApp(
+    b: *std.Build,
+    name: []const u8,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    common_deps: CommonDeps,
+    options: AppOptions,
+) !*std.Build.Step.Compile {
+    const deps = try b.allocator.alloc(jok.Dependency, 6 + options.additional_deps.len);
+    deps[0] = .{ .name = "zevy_mem", .mod = common_deps.zevy_mem };
+    deps[1] = .{ .name = "zevy_jok", .mod = common_deps.zevy_jok };
+    deps[2] = .{ .name = "zevy_ecs", .mod = common_deps.zevy_ecs };
+    deps[3] = .{ .name = "plugins", .mod = common_deps.plugins };
+    deps[4] = .{ .name = "jok", .mod = common_deps.jok };
+    deps[5] = .{ .name = "sdl", .mod = common_deps.sdl };
+    std.mem.copyForwards(jok.Dependency, deps[6..], options.additional_deps);
+
+    return jok.createDesktopApp(b, name, root_source_file, target, optimize, .{
+        .additional_deps = deps,
+    });
+}
+
+fn addExampleSteps(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    common_deps: CommonDeps,
+) !void {
+    var threaded = std.Io.Threaded.init_single_threaded;
+    const io = threaded.io();
+    var examples_dir = try std.Io.Dir.cwd().openDir(io, "examples", .{ .iterate = true });
+    defer examples_dir.close(io);
+
+    var iter = examples_dir.iterate();
+    while (try iter.next(io)) |entry| {
+        if (entry.kind != .file or !std.mem.endsWith(u8, entry.name, ".zig")) continue;
+
+        const stem = std.fs.path.stem(entry.name);
+        const step_name = try std.fmt.allocPrint(b.allocator, "example-{s}", .{stem});
+        const step_desc = try std.fmt.allocPrint(b.allocator, "Run the {s} example", .{stem});
+        const exe_name = try std.fmt.allocPrint(b.allocator, "zevy_jok_example_{s}", .{stem});
+        const example_path = try std.fmt.allocPrint(b.allocator, "examples/{s}", .{entry.name});
+
+        const example_exe = try createApp(b, exe_name, example_path, target, optimize, common_deps, .{});
+        const run_example = b.addRunArtifact(example_exe);
+        const example_step = b.step(step_name, step_desc);
+        example_step.dependOn(&run_example.step);
+
+        if (b.args) |args| {
+            run_example.addArgs(args);
+        }
+    }
+}
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
 
@@ -37,45 +105,16 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
-    const exe = jok.createDesktopApp(b, "zevy_jok", "src/main.zig", target, optimize, .{
-        .additional_deps = &.{
-            .{ .name = "zevy_mem", .mod = zevy_mem },
-            .{ .name = "zevy_jok", .mod = mod },
-            .{ .name = "zevy_ecs", .mod = zevy_ecs },
-            .{ .name = "plugins", .mod = plugins },
-            .{ .name = "jok", .mod = jok_dep.module },
-            .{ .name = "sdl", .mod = sdl },
-        },
-    });
+    const common_deps: CommonDeps = .{
+        .zevy_mem = zevy_mem,
+        .zevy_jok = mod,
+        .zevy_ecs = zevy_ecs,
+        .plugins = plugins,
+        .jok = jok_dep.module,
+        .sdl = sdl,
+    };
 
     b.installArtifact(jok_dep.artifact);
-
-    // This declares intent for the executable to be installed into the
-    // install prefix when running `zig build` (i.e. when executing the default
-    // step). By default the install prefix is `zig-out/` but can be overridden
-    // by passing `--prefix` or `-p`.
-    b.installArtifact(exe);
-
-    const run_step = b.step("run", "Run the app");
-
-    // This creates a RunArtifact step in the build graph. A RunArtifact step
-    // invokes an executable compiled by Zig. Steps will only be executed by the
-    // runner if invoked directly by the user (in the case of top level steps)
-    // or if another step depends on it, so it's up to you to define when and
-    // how this Run step will be executed. In our case we want to run it when
-    // the user runs `zig build run`, so we create a dependency link.
-    const run_cmd = b.addRunArtifact(exe);
-    run_step.dependOn(&run_cmd.step);
-
-    // By making the run step depend on the default step, it will be run from the
-    // installation directory rather than directly from within the cache directory.
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    // This allows the user to pass arguments to the application in the build
-    // command itself, like this: `zig build run -- arg1 arg2 etc`
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
 
     // Creates an executable that will run `test` blocks from the provided module.
     // Here `mod` needs to define a target, which is why earlier we made sure to
@@ -87,22 +126,13 @@ pub fn build(b: *std.Build) !void {
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);
 
-    // Creates an executable that will run `test` blocks from the executable's
-    // root module. Note that test executables only test one module at a time,
-    // hence why we have to create two separate ones.
-    const exe_tests = b.addTest(.{
-        .root_module = exe.root_module,
-    });
-
-    // A run step that will run the second test executable.
-    const run_exe_tests = b.addRunArtifact(exe_tests);
-
     // A top level step for running all tests. dependOn can be called multiple
     // times and since the two run steps do not depend on one another, this will
     // make the two of them run in parallel.
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
-    test_step.dependOn(&run_exe_tests.step);
+
+    try addExampleSteps(b, target, optimize, common_deps);
 
     try buildtools.deps.addDepsStep(b);
     try buildtools.fetch.addFetchStep(b, b.path("build.zig.zon"));

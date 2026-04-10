@@ -43,11 +43,11 @@ pub const Batch = struct {
         self.pool3d.deinit();
     }
 
-    pub fn begin2d(self: *Batch) void {
-        self.tryBegin2d() catch @panic("failed to begin 2D render batch");
+    pub fn begin2d(self: *Batch) BatchPtr(.@"2D") {
+        return self.tryBegin2d() orelse @panic("failed to begin 2D render batch");
     }
 
-    pub fn tryBegin2d(self: *Batch) !void {
+    pub fn tryBegin2d(self: *Batch) ?BatchPtr(.@"2D") {
         if (self.current2d) |b| {
             b.submit();
             self.current2d = null;
@@ -56,7 +56,8 @@ pub const Batch = struct {
             b.abort();
             self.current3d = null;
         }
-        self.current2d = try self.pool2d.new(.{});
+        self.current2d = self.pool2d.new(.{}) catch return null;
+        return self.current2d;
     }
 
     pub fn end2d(self: *Batch) void {
@@ -66,11 +67,11 @@ pub const Batch = struct {
         }
     }
 
-    pub fn begin3d(self: *Batch) void {
-        self.tryBegin3d() catch @panic("failed to begin 3D render batch");
+    pub fn begin3d(self: *Batch) BatchPtr(.@"3D") {
+        return self.tryBegin3d() orelse @panic("failed to begin 3D render batch");
     }
 
-    pub fn tryBegin3d(self: *Batch) !void {
+    pub fn tryBegin3d(self: *Batch) ?BatchPtr(.@"3D") {
         if (self.current3d) |b| {
             b.submit();
             self.current3d = null;
@@ -79,7 +80,8 @@ pub const Batch = struct {
             b.abort();
             self.current2d = null;
         }
-        self.current3d = try self.pool3d.new(.{});
+        self.current3d = self.pool3d.new(.{}) catch return null;
+        return self.current3d;
     }
     pub fn end3d(self: *Batch) void {
         if (self.current3d) |b| {
@@ -108,17 +110,14 @@ pub const Batch = struct {
         }
     }
 
-    pub fn recycleMemory(self: *Batch) void {
-        self.pool2d.recycleMemory();
-        self.pool3d.recycleMemory();
-    }
-
-    /// Returns the currently active batch of the given type. Panics if the batch of that type
-    /// has not been begun via `begin2d` / `begin3d`.
-    pub fn get(self: *Batch, comptime kind: BatchType) BatchPtr(kind) {
-        return switch (kind) {
-            .@"2D" => self.current2d orelse @panic("Batch.begin() must be called before getting the 2D batch"),
-            .@"3D" => self.current3d orelse @panic("Batch.begin() must be called before getting the 3D batch"),
-        };
+    pub fn reclaim(self: *Batch) void {
+        if (self.current2d) |batch| {
+            batch.recycleMemory();
+            self.current2d = null;
+        }
+        if (self.current3d) |batch| {
+            batch.recycleMemory();
+            self.current3d = null;
+        }
     }
 };

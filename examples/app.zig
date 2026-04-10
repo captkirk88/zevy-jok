@@ -70,7 +70,7 @@ pub fn quit(ctx: jok.Context) void {
 
 fn startup(commands: ecs.commands.Commands, win_res: ecs.ResMut(jok.Window)) !void {
     const window = win_res.get();
-    const entity_count = 1000;
+    const entity_count = 10_000;
     var i: usize = 0;
     var prng = std.Random.DefaultPrng.init(0);
     const random = prng.random();
@@ -78,12 +78,11 @@ fn startup(commands: ecs.commands.Commands, win_res: ecs.ResMut(jok.Window)) !vo
         var ent = try commands.create();
         defer ent.deinit();
         _ = try ent.add(zevy_jok.components.shape.Shape, .circle(10.0));
-        const color = jok.Color.rgb(
+        _ = try ent.add(zevy_jok.components.Color, jok.Color.rgb(
             random.int(u8),
             random.int(u8),
             random.int(u8),
-        );
-        _ = try ent.add(zevy_jok.components.Color, color);
+        ));
         _ = try ent.add(zevy_jok.components.Transform, .translation(math.Vector2.new(
             random.float(f32) * window.getSize().getWidthFloat(),
             random.float(f32) * window.getSize().getHeightFloat(),
