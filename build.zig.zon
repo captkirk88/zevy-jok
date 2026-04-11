@@ -7,24 +7,24 @@
     .minimum_zig_version = "0.16.0-dev.3006+94355f192",
     .dependencies = .{
         .zevy_buildtools = .{
-            .url = "git+https://github.com/captkirk88/zevy-buildtools#a56ce3e3d27020503b1e92587166acdfcfd521c9",
-            .hash = "zevy_buildtools-1.0.0-AG3r_F6RAAAeSEw9OxHJ_nkIvYpfoZY5zAOyMEqM_Yvp",
+            .url = "git+https://github.com/captkirk88/zevy-buildtools#73dbb1c11d076af3934e9c4339ad2a4f4265b19e",
+            .hash = "zevy_buildtools-1.1.0-AG3r_P2QAACstZJiOpk_0yn08wbEDVk_Aoi4Fc9dHKoS",
         },
         .jok = .{
             .url = "git+https://github.com/jack-ji/jok#9debd8674a2652a82d92675f9ab9a700ddf60c39",
             .hash = "jok-0.102.1-NH_NkjtGQAG6MUBOeVQra-1cpfTQaZSnpA1aATDBv_96",
         },
         .zevy_ecs = .{
-            .url = "git+https://github.com/captkirk88/zevy-ecs#d031b3b95d8c84e4f48f5f840c9a672e76b9c5e7",
-            .hash = "zevy_ecs-2.3.3-VoL9mZptCAAF77kVzwc9dvCUecEvXDMesSu62muu3hwM",
+            .url = "git+https://github.com/captkirk88/zevy-ecs#8425caf234d751b1bdbb16f73b95e9ec8b37c4f5",
+            .hash = "zevy_ecs-2.3.3-VoL9mZptCADdV79uf8qUrlnKqsYDWJ691f2xg7TjZcuY",
         },
         .zevy_mem = .{
-            .url = "git+https://github.com/captkirk88/zevy-mem#1f9e5ec6af90148dcc218d24ca7cd2615178b0b7",
-            .hash = "zevy_mem-1.1.0-jK9L0Qg7AwBuDocGllXc0w8pgrJWV2DKAh659ViP5flb",
+            .url = "git+https://github.com/captkirk88/zevy-mem#113630e4ea473a541d0e7cb70e73554b5a3929d0",
+            .hash = "zevy_mem-1.1.0-jK9L0Qg7AwAZV-PlG3Cd2nKhUdfBLj45Agssn2CaX1_y",
         },
         .zevy_reflect = .{
-            .url = "git+https://github.com/captkirk88/zevy-reflect#05d9d6c5348cf1cc3aec0efd872cdde1aac118c1",
-            .hash = "zevy_reflect-1.1.0-Ob80cDDaAgBRwkJJdhG0tcftiF1T4KlC7veaGutpzdFX",
+            .url = "git+https://github.com/captkirk88/zevy-reflect#17336281ec6365dbad2f5ca973bd62bbebd27744",
+            .hash = "zevy_reflect-1.3.0-Ob80cIcfAwCtkrd7xMQiAP4rx4vrNa08XKqU7OaS791a",
         },
     },
     .paths = .{
