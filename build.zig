@@ -75,6 +75,12 @@ pub fn build(b: *std.Build) !void {
 
     const optimize = b.standardOptimizeOption(.{});
 
+    const zevy_reflect_dep = b.dependency("zevy_reflect", .{
+        .optimize = optimize,
+        .target = target,
+    });
+    const zevy_reflect = zevy_reflect_dep.module("zevy_reflect");
+
     const zevy_mem_dep = b.dependency("zevy_mem", .{
         .optimize = optimize,
         .target = target,
@@ -97,6 +103,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .imports = &.{
+            .{ .name = "zevy_reflect", .module = zevy_reflect },
             .{ .name = "zevy_mem", .module = zevy_mem },
             .{ .name = "zevy_ecs", .module = zevy_ecs },
             .{ .name = "plugins", .module = plugins },

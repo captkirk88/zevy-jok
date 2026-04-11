@@ -6,8 +6,8 @@ pub const batchers = @import("batch.zig");
 pub const components = @import("../components/root.zig");
 const math = @import("../math.zig");
 
-pub fn RenderPlugin(comptime T: type) type {
-    _ = T;
+pub fn RenderPlugin(comptime EcsParamRegistry: ?type) type {
+    _ = EcsParamRegistry;
     return struct {
         const Self = @This();
         pub const Name: []const u8 = "RenderPlugin";
@@ -38,7 +38,10 @@ pub fn RenderPlugin(comptime T: type) type {
     };
 }
 
-fn beginRender2d(batcher: ecs.ResMut(batchers.Batch), query_shapes: ecs.params.Query(struct {
+const ResMut = ecs.params.ResMut;
+const Query = ecs.params.Query;
+
+fn beginRender2d(batcher: ResMut(batchers.Batch), query_shapes: Query(struct {
     shape: components.shape.Shape,
     transform: components.Transform,
     color: ?components.Color,
@@ -51,7 +54,7 @@ fn beginRender2d(batcher: ecs.ResMut(batchers.Batch), query_shapes: ecs.params.Q
         const color = q.color orelse &jok.Color.white;
         const shape: *components.shape.Shape = q.shape;
         const transform: *components.Transform = q.transform;
-        shape.setOrigin(math.Vector2.new(transform.getX(), transform.getY()));
+        shape.setOrigin(.new(transform.getX(), transform.getY()));
         switch (shape.*) {
             .Circle => |circle| {
                 try rend_2d.circleFilled(circle, color.*, .{});

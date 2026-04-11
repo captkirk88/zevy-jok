@@ -16,7 +16,3 @@ pub const jok = @import("jok");
 pub const sdl = @import("sdl");
 
 pub const math = @import("math.zig");
-
-const app = @import("app.zig");
-
-pub const App = app.App;
