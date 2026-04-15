@@ -28,6 +28,7 @@ pub const WindowOptions = struct {
 };
 
 pub fn WindowPlugin(comptime EcsParamRegistry: ?type) type {
+    const ParamRegistry = if (EcsParamRegistry) |t| t else ecs.DefaultParamRegistry;
     return struct {
         const Self = @This();
         pub const Name: []const u8 = "WindowPlugin";
@@ -44,7 +45,6 @@ pub fn WindowPlugin(comptime EcsParamRegistry: ?type) type {
                 .Borderless => unreachable, // Limited by jok's comptime config requirement
                 .Windowed => ctx.window().setFullscreen(false) catch {},
             }
-            options.fullscreen_mode.finish();
             return Self{
                 .window_options = options,
                 .__context = ctx,
@@ -52,7 +52,7 @@ pub fn WindowPlugin(comptime EcsParamRegistry: ?type) type {
         }
 
         pub fn build(self: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
-            _ = try manager.addResource(reflect.Change(WindowOptions), reflect.Change(WindowOptions).init(self.window_options));
+            _ = try manager.addResource(reflect.Change(WindowOptions), .init(self.window_options));
             _ = try manager.addResource(jok.Window, self.__context.window());
             _ = try manager.addResource(jok.Context, self.__context);
             _ = try manager.addResource(DeltaTime, 0.0);
@@ -60,11 +60,11 @@ pub fn WindowPlugin(comptime EcsParamRegistry: ?type) type {
                 var scheduler = scheduler_res.lockWrite();
                 defer scheduler.deinit();
 
-                scheduler.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.PreUpdate), updateDeltaTime, EcsParamRegistry orelse ecs.DefaultParamRegistry);
+                scheduler.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.PreUpdate), updateDeltaTime, ParamRegistry);
 
-                scheduler.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.Update), changeWindowOptions, EcsParamRegistry orelse ecs.DefaultParamRegistry);
-
-                scheduler.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.Update), toggleFullscreen, EcsParamRegistry orelse ecs.DefaultParamRegistry);
+                // Toggle fullscreen when F11 is pressed
+                // Note: This system is not added because pressing f11 results in freezing the entire program
+                //scheduler.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.Update), ecs.chain(.{ toggleFullscreen, changeWindowOptions }), ParamRegistry);
             }
             _ = plugins;
         }
@@ -84,30 +84,55 @@ fn updateDeltaTime(ctx: Res(jok.Context), dt: ResMut(DeltaTime)) !void {
     dt.get().* = ctx.get().deltaSeconds();
 }
 
-fn changeWindowOptions(window: ResMut(jok.Window), options: Res(reflect.Change(WindowOptions))) !void {
-    if (options.get().isChanged() == false) return;
+fn changeWindowOptions(window: ResMut(jok.Window), options_res: ResMut(reflect.Change(WindowOptions))) !void {
+    const change = options_res.get();
 
-    const window_size: jok.j2d.geom.Size = .{ .width = options.get().value().width, .height = options.get().value().height };
-    window.get().setSize(window_size) catch {};
+    if (change.isChanged()) {
+        const opts = change.get();
+        const window_size: jok.j2d.geom.Size = .{ .width = opts.width, .height = opts.height };
+        window.get().setSize(window_size) catch {};
+        window.get().setTitle(opts.title) catch {};
+        change.finish();
+    }
 
-    window.get().setTitle(options.get().value().title) catch {};
-    if (options.get().value().fullscreen_mode.isChanged()) {
-        switch (options.get().value().fullscreen_mode.value()) {
-            .Exclusive => window.get().setFullscreen(true) catch {},
+    // Check the LIVE nested fullscreen_mode — do NOT copy it, or finish() won't take effect
+    if (change.getConst().fullscreen_mode.isChanged()) {
+        // change.isChanged() is false here (finished above or was never set)
+        // so change.get() is safe — it won't panic
+        const opts = change.get();
+        switch (opts.fullscreen_mode.getConst().*) {
+            .Exclusive => window.get().setFullscreen(true) catch |err| {
+                std.log.err("Failed to set fullscreen mode: {s}", .{@errorName(err)});
+            },
             .Borderless => unreachable, // Limited by jok's comptime config requirement
-            .Windowed => window.get().setFullscreen(false) catch {},
+            .Windowed => window.get().setFullscreen(false) catch |err| {
+                std.log.err("Failed to set windowed mode: {s}", .{@errorName(err)});
+            },
         }
+        // finish() on the LIVE opts.fullscreen_mode clears isChanged() for next frame
+        opts.fullscreen_mode.finish();
     }
 }
 
-fn toggleFullscreen(options: ResMut(reflect.Change(WindowOptions))) !void {
-    if (jok.io.getKeyboardState().isPressed(jok.io.Scancode.f11)) {
-        const current_mode = options.get().get().fullscreen_mode.get();
-        const new_mode = switch (current_mode.*) {
+fn toggleFullscreen(options: ResMut(reflect.Change(WindowOptions)), state: ecs.params.Local(struct {
+    prev: bool = false,
+})) !void {
+    const now = jok.io.getKeyboardState().isPressed(jok.io.Scancode.f11);
+    defer {
+        state.set(.{ .prev = now });
+    }
+    if (now and state.get().prev == false) {
+        const win_opts = options.get().get();
+        const current_mode = win_opts.fullscreen_mode.get();
+        current_mode.* = switch (current_mode.*) {
             .Exclusive => FullscreenMode.Windowed,
             .Borderless => FullscreenMode.Windowed,
             .Windowed => FullscreenMode.Exclusive,
         };
-        options.get().get().fullscreen_mode.get().* = new_mode;
     }
+}
+
+fn spawnTeapot(commands: Commands) !void {
+    var entity = try commands.create();
+    defer entity.deinit();
 }

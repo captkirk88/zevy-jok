@@ -7,7 +7,7 @@ pub const components = @import("../components/root.zig");
 const math = @import("../math.zig");
 
 pub fn RenderPlugin(comptime EcsParamRegistry: ?type) type {
-    _ = EcsParamRegistry;
+    const ParamRegistry = if (EcsParamRegistry) |t| t else ecs.DefaultParamRegistry;
     return struct {
         const Self = @This();
         pub const Name: []const u8 = "RenderPlugin";
@@ -27,7 +27,7 @@ pub fn RenderPlugin(comptime EcsParamRegistry: ?type) type {
                 const sched = scheduler.lockWrite();
                 defer sched.deinit();
 
-                sched.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.PreDraw), beginRender2d, ecs.DefaultParamRegistry);
+                sched.get().addSystem(manager, ecs.schedule.Stage(ecs.schedule.Stages.PreDraw), beginRender2d, ParamRegistry);
             }
         }
 

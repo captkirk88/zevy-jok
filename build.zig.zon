@@ -11,12 +11,12 @@
             .hash = "zevy_buildtools-1.1.0-AG3r_P2QAACstZJiOpk_0yn08wbEDVk_Aoi4Fc9dHKoS",
         },
         .jok = .{
-            .url = "git+https://github.com/jack-ji/jok#9debd8674a2652a82d92675f9ab9a700ddf60c39",
-            .hash = "jok-0.102.1-NH_NkjtGQAG6MUBOeVQra-1cpfTQaZSnpA1aATDBv_96",
+            .url = "git+https://github.com/jack-ji/jok#3f48dc83c1fb3a3d42959596d9f29671cf1caeb8",
+            .hash = "jok-0.103.0-NH_NkpvYQAEEZG6Uavj0u-eQKkGyGJQ_hfo_-xNcP834",
         },
         .zevy_ecs = .{
-            .url = "git+https://github.com/captkirk88/zevy-ecs#8425caf234d751b1bdbb16f73b95e9ec8b37c4f5",
-            .hash = "zevy_ecs-2.3.3-VoL9mZptCADdV79uf8qUrlnKqsYDWJ691f2xg7TjZcuY",
+            .url = "git+https://github.com/captkirk88/zevy-ecs#7d82b545cef7df1ebe3b6aab8f7427a9df7416da",
+            .hash = "zevy_ecs-2.3.4-VoL9mVhvCABM7VK4oiEX60gTCPmui43DcCnhwSti_XdQ",
         },
         .zevy_mem = .{
             .url = "git+https://github.com/captkirk88/zevy-mem#113630e4ea473a541d0e7cb70e73554b5a3929d0",

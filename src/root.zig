@@ -16,3 +16,11 @@ pub const jok = @import("jok");
 pub const sdl = @import("sdl");
 
 pub const math = @import("math.zig");
+
+test {
+    std.testing.refAllDecls(render);
+    std.testing.refAllDecls(assets);
+    std.testing.refAllDecls(window);
+    std.testing.refAllDecls(components);
+    std.testing.refAllDecls(components.shape);
+}

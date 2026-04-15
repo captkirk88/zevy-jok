@@ -90,7 +90,7 @@ pub fn quit(ctx: jok.Context) void {
     manager.deinit();
 }
 
-const ENTITY_COUNT = 50_000;
+const ENTITY_COUNT = 10_000;
 
 fn startup(commands: Commands, win_res: ResMut(jok.Window), ctx_res: ResMut(jok.Context)) !void {
     {
