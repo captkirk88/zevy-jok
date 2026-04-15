@@ -47,7 +47,7 @@ pub fn init(ctx: jok.Context) !void {
 
 pub fn addPlugins(ctx: jok.Context) !void {
     const window_config: zevy_jok.window.WindowOptions = .{
-        .fullscreen_mode = .init(.Exclusive),
+        .fullscreen_mode = .init(.Windowed),
         .title = "Circles!",
     };
     try addPlugin(zevy_jok.WindowPlugin(null), .init(ctx, window_config));
