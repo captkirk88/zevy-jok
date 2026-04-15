@@ -14,6 +14,8 @@ pub const Shape = union(enum) {
     Box: jok.j3d.geom.AABB,
     Triangle3D: jok.j3d.geom.Triangle,
 
+    const Tag = std.meta.Tag(Shape);
+
     pub fn circle(radius: f32) Shape {
         return .{ .Circle = .{ .radius = radius } };
     }
@@ -55,59 +57,73 @@ pub const Shape = union(enum) {
         return .{ .Triangle3D = .{ .v0 = a.toArray(), .v1 = b.toArray(), .v2 = c.toArray() } };
     }
 
-    pub fn is2D(self: *Shape) bool {
-        return switch (self.*) {
-            .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
-            .Sphere, .Box, .Triangle3D => false,
+    pub fn is2D(shape: anytype) bool {
+        return switch (@TypeOf(shape)) {
+            Shape => switch (shape) {
+                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
+                .Sphere, .Box, .Triangle3D => false,
+            },
+            *Shape, *const Shape => switch (shape.*) {
+                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
+                .Sphere, .Box, .Triangle3D => false,
+            },
+            Tag => switch (shape) {
+                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
+                .Sphere, .Box, .Triangle3D => false,
+            },
+            else => @compileError("Shape.is2D expects Shape, *Shape, *const Shape, or Shape.Tag"),
         };
     }
 
-    pub fn is3D(self: *Shape) bool {
-        return switch (self.*) {
-            .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => false,
-            .Sphere, .Box, .Triangle3D => true,
-        };
+    pub fn is3D(shape: anytype) bool {
+        return !is2D(shape);
     }
 
-    pub fn setOrigin(self: *Shape, origin: if (self.is2D()) jok.j2d.Vector else jok.j3d.Vector) void {
-        switch (self.*) {
-            .Circle => |*c| {
-                c.center = origin.toPoint();
+    pub fn setOrigin(self: *Shape, origin: anytype) void {
+        switch (@TypeOf(origin)) {
+            jok.j2d.Vector => switch (self.*) {
+                .Circle => |*c| {
+                    c.center = origin.toPoint();
+                },
+                .Rectangle => |*r| {
+                    r.x = origin.x();
+                    r.y = origin.y();
+                },
+                .Triangle => |*tri| {
+                    tri.p0 = origin.toPoint();
+                },
+                .Ellipse => |*e| {
+                    e.center = origin.toPoint();
+                },
+                .Line => |*l| {
+                    l.p0 = origin.toPoint();
+                },
+                .Point => |*p| {
+                    p.x = origin.x();
+                    p.y = origin.y();
+                },
+                .Ray => |*ry| {
+                    ry.origin = origin.toPoint();
+                },
+                else => unreachable,
             },
-            .Rectangle => |*r| {
-                r.x = origin.x();
-                r.y = origin.y();
+            jok.j3d.Vector => switch (self.*) {
+                .Sphere => |*s| {
+                    s.center = origin.toArray();
+                },
+                .Box => |*b| {
+                    const min = jok.j3d.Vector.fromSlice(&b.min);
+                    const max = jok.j3d.Vector.fromSlice(&b.max);
+                    const half_size = max.sub(min).scale(0.5);
+                    b.min = origin.sub(half_size).toArray();
+                    b.max = origin.add(half_size).toArray();
+                },
+                .Triangle3D => |*t| {
+                    t.v0 = origin.toArray();
+                },
+                else => unreachable,
             },
-            .Triangle => |*tri| {
-                tri.p0 = origin.toPoint();
-            },
-            .Ellipse => |*e| {
-                e.center = origin.toPoint();
-            },
-            .Line => |*l| {
-                l.p0 = origin.toPoint();
-            },
-            .Point => |*p| {
-                p.x = origin.x();
-                p.y = origin.y();
-            },
-            .Ray => |*ry| {
-                ry.origin = origin.toPoint();
-            },
-            .Sphere => |*s| {
-                s.center = origin.toArray();
-            },
-            .Box => |*b| {
-                const min = jok.j3d.Vector.fromSlice(&b.min);
-                const max = jok.j3d.Vector.fromSlice(&b.max);
-                const half_size = max.sub(min).scale(0.5);
-                b.min = origin.sub(half_size).toArray();
-                b.max = origin.add(half_size).toArray();
-            },
-            .Triangle3D => |*t| {
-                t.v0 = origin.toArray();
-            },
-            else => {},
+            else => @compileError("Shape.setOrigin expects jok.j2d.Vector or jok.j3d.Vector"),
         }
     }
 };
@@ -273,5 +289,22 @@ test "Shape.triangle3D constructs a 3D triangle" {
             try std.testing.expectEqualDeep(c.toArray(), triangle.v2);
         },
         else => unreachable,
+    }
+}
+
+test "Shape.is2D and Shape.is3D work at comptime" {
+    comptime {
+        if (!Shape.is2D(@as(Shape.Tag, .Circle))) {
+            @compileError("Circle should be 2D");
+        }
+        if (Shape.is3D(@as(Shape.Tag, .Circle))) {
+            @compileError("Circle should not be 3D");
+        }
+        if (Shape.is2D(@as(Shape.Tag, .Triangle3D))) {
+            @compileError("Triangle3D should not be 2D");
+        }
+        if (!Shape.is3D(@as(Shape.Tag, .Triangle3D))) {
+            @compileError("Triangle3D should be 3D");
+        }
     }
 }

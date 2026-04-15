@@ -21,6 +21,44 @@ pub const Matrix = math.Mat;
 pub const Transform = struct {
     mat: Matrix,
 
+    pub fn random() Transform {
+        var threaded: std.Io.Threaded = undefined;
+        const io = threaded.io();
+        const clock = std.Io.Clock.now(.real, io);
+        const seed: u64 = @intCast(clock.nanoseconds);
+        var rng = std.Random.DefaultPrng.init(seed);
+        const trans = Vector3.new(
+            rng.random().float(f32) * 200 - 100,
+            rng.random().float(f32) * 200 - 100,
+            rng.random().float(f32) * 200 - 100,
+        );
+        const rot = Vector3.new(
+            rng.random().float(f32) * pi * 2,
+            rng.random().float(f32) * pi * 2,
+            rng.random().float(f32) * pi * 2,
+        );
+        const scl = Vector3.new(
+            rng.random().float(f32) * 2 + 0.5,
+            rng.random().float(f32) * 2 + 0.5,
+            rng.random().float(f32) * 2 + 0.5,
+        );
+        const translation_mat = math.translation(trans.x(), trans.y(), trans.z());
+        const rotation_x = math.rotationX(rot.x());
+        const rotation_y = math.rotationY(rot.y());
+        const rotation_z = math.rotationZ(rot.z());
+        const scale_mat = math.scaling(scl.x(), scl.y(), scl.z());
+
+        return Transform{
+            .mat = math.mul(
+                math.mul(
+                    math.mul(math.mul(translation_mat, rotation_x), rotation_y),
+                    rotation_z,
+                ),
+                scale_mat,
+            ),
+        };
+    }
+
     pub fn getX(self: *const Transform) f32 {
         return self.mat[3][0];
     }
@@ -91,10 +129,12 @@ pub const Transform = struct {
 
     /// Creates a transform from translation, rotation, and scale components. The rotation is applied around the Z axis.
     pub fn translationRotationScale(translation_vec: Vector2, rotation_radians: f32, scale_vec: Vector2) Transform {
+        const translation_mat = math.translation(translation_vec[0], translation_vec[1], 0);
+        const rotation_mat = math.rotationZ(rotation_radians);
+        const scale_mat = math.scaling(scale_vec[0], scale_vec[1], 1);
+
         return Transform{
-            .mat = math.translation(translation_vec[0], translation_vec[1], 0) *
-                math.rotationZ(rotation_radians) *
-                math.scaling(scale_vec[0], scale_vec[1], 1),
+            .mat = math.mul(math.mul(translation_mat, rotation_mat), scale_mat),
         };
     }
 

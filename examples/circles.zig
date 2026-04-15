@@ -39,6 +39,7 @@ pub fn init(ctx: jok.Context) !void {
     // Add systems to the scheduler
     scheduler.addSystem(&manager, Stage(Stages.Startup), startup, ecs.DefaultParamRegistry);
     scheduler.addSystem(&manager, Stage(Stages.Update), moveCircles, ecs.DefaultParamRegistry);
+    scheduler.addSystem(&manager, Stage(Stages.Update), centerSpheres, ecs.DefaultParamRegistry);
 
     // Run the startup stage immediately to initialize the scene before the first frame is drawn.
     try scheduler.runStages(&manager, Stage(Stages.PreStartup), Stage(Stages.Startup));
@@ -121,6 +122,8 @@ fn startup(commands: Commands, win_res: ResMut(jok.Window), ctx_res: ResMut(jok.
         const rand_vel = randVector2(&prng, 50);
         try ent.add(zevy_jok.components.Velocity, rand_vel);
     }
+
+    try createSphere(commands);
 }
 
 fn moveCircles(
@@ -147,6 +150,34 @@ fn moveCircles(
         const vel_after = math.Vector2.mul(vel.*, .new(delta, delta));
         _ = transform.translate(vel_after);
     }
+}
+
+fn centerSpheres(
+    query: Query(struct {
+        shape: zevy_jok.components.shape.Shape,
+        transform: zevy_jok.components.Transform,
+    }),
+) !void {
+    while (query.next()) |q| {
+        const shape: *zevy_jok.components.shape.Shape = q.shape;
+        if (!shape.is3D()) continue;
+
+        switch (shape.*) {
+            .Sphere => {
+                const transform: *zevy_jok.components.Transform = q.transform;
+                transform.* = .translation(math.Vector2.zero);
+            },
+            else => {},
+        }
+    }
+}
+
+fn createSphere(commands: Commands) !void {
+    var ent = try commands.create();
+    defer ent.deinit();
+    const transform = zevy_jok.components.Transform.translation(math.Vector2.zero);
+    try ent.add(zevy_jok.components.Transform, transform);
+    try ent.add(zevy_jok.components.shape.Shape, .sphere(32.0, transform.getTranslation()));
 }
 
 fn randVector2(random: *std.Random.DefaultPrng, range: f32) math.Vector2 {
