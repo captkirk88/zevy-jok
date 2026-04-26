@@ -11,8 +11,8 @@
             .hash = "zevy_buildtools-1.1.0-AG3r_P2QAACstZJiOpk_0yn08wbEDVk_Aoi4Fc9dHKoS",
         },
         .jok = .{
-            .url = "git+https://github.com/jack-ji/jok#3f48dc83c1fb3a3d42959596d9f29671cf1caeb8",
-            .hash = "jok-0.103.0-NH_NkpvYQAEEZG6Uavj0u-eQKkGyGJQ_hfo_-xNcP834",
+            .url = "git+https://github.com/jack-ji/jok#ba24da4acb765ae3fa6fca5b3157d49915217d87",
+            .hash = "jok-0.105.0-NH_NkpLGQAHJcJqjZQwRVo-zyX1wcrpSByOGyNySZXKv",
         },
         .zevy_ecs = .{
             .url = "git+https://github.com/captkirk88/zevy-ecs#7d82b545cef7df1ebe3b6aab8f7427a9df7416da",
