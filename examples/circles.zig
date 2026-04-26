@@ -14,6 +14,9 @@ const ResMut = ecs.params.ResMut;
 const Query = ecs.params.Query;
 const Commands = ecs.params.Commands;
 
+/// Example demonstrating a large number of circles bouncing around the screen, with one sphere in the center. Tests basic rendering, transform updates, and 3D shape support.
+const ENTITY_COUNT = 50_000;
+
 var manager: ecs.Manager = undefined;
 var scheduler: *ecs.schedule.Scheduler = undefined;
 var plugin_man: plugins.PluginManager = undefined;
@@ -33,16 +36,18 @@ pub fn init(ctx: jok.Context) !void {
     try addPlugins(ctx);
 
     var scheduler_lock = scheduler_arc.lockWrite();
-    defer scheduler_lock.deinit();
-    scheduler = scheduler_lock.get();
+    {
+        defer scheduler_lock.deinit();
+        scheduler = scheduler_lock.get();
 
-    // Add systems to the scheduler
-    scheduler.addSystem(&manager, Stage(Stages.Startup), startup, ecs.DefaultParamRegistry);
-    scheduler.addSystem(&manager, Stage(Stages.Update), moveCircles, ecs.DefaultParamRegistry);
-    scheduler.addSystem(&manager, Stage(Stages.Update), centerSpheres, ecs.DefaultParamRegistry);
+        // Add systems to the scheduler
+        scheduler.addSystem(&manager, Stage(Stages.Startup), startup, ecs.DefaultParamRegistry);
+        scheduler.addSystem(&manager, Stage(Stages.Update), moveCircles, ecs.DefaultParamRegistry);
+        scheduler.addSystem(&manager, Stage(Stages.Update), centerSpheres, ecs.DefaultParamRegistry);
 
-    // Run the startup stage immediately to initialize the scene before the first frame is drawn.
-    try scheduler.runStages(&manager, Stage(Stages.PreStartup), Stage(Stages.Startup));
+        // Run the startup stage immediately to initialize the scene before the first frame is drawn.
+        try scheduler.runStages(&manager, Stage(Stages.PreStartup), Stage(Stages.Startup));
+    }
 }
 
 pub fn addPlugins(ctx: jok.Context) !void {
@@ -90,8 +95,6 @@ pub fn quit(ctx: jok.Context) void {
     }
     manager.deinit();
 }
-
-const ENTITY_COUNT = 10_000;
 
 fn startup(commands: Commands, win_res: ResMut(jok.Window), ctx_res: ResMut(jok.Context)) !void {
     {
