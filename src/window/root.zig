@@ -52,10 +52,10 @@ pub fn WindowPlugin(comptime EcsParamRegistry: ?type) type {
         }
 
         pub fn build(self: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
-            _ = try manager.addResource(reflect.Change(WindowOptions), .init(self.window_options));
-            _ = try manager.addResource(jok.Window, self.__context.window());
-            _ = try manager.addResource(jok.Context, self.__context);
-            _ = try manager.addResource(DeltaTime, 0.0);
+            try manager.addResourceRetained(reflect.Change(WindowOptions), .init(self.window_options));
+            try manager.addResourceRetained(jok.Window, self.__context.window());
+            try manager.addResourceRetained(jok.Context, self.__context);
+            try manager.addResourceRetained(DeltaTime, 0.0);
             if (manager.getResource(ecs.schedule.Scheduler)) |scheduler_res| {
                 var scheduler = scheduler_res.lockWrite();
                 defer scheduler.deinit();

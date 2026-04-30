@@ -15,7 +15,7 @@ const Query = ecs.params.Query;
 const Commands = ecs.params.Commands;
 
 /// Example demonstrating a large number of circles bouncing around the screen, with one sphere in the center. Tests basic rendering, transform updates, and 3D shape support.
-const ENTITY_COUNT = 50_000;
+const ENTITY_COUNT = 10_000;
 
 var manager: ecs.Manager = undefined;
 var scheduler: *ecs.schedule.Scheduler = undefined;
@@ -46,7 +46,8 @@ pub fn init(ctx: jok.Context) !void {
         scheduler.addSystem(&manager, Stage(Stages.Update), centerSpheres, ecs.DefaultParamRegistry);
 
         // Run the startup stage immediately to initialize the scene before the first frame is drawn.
-        try scheduler.runStages(&manager, Stage(Stages.PreStartup), Stage(Stages.Startup));
+        const eg = scheduler.runStages(&manager, Stage(Stages.PreStartup), Stage(Stages.Startup));
+        try eg.throw();
     }
 }
 
@@ -71,12 +72,14 @@ pub fn event(ctx: jok.Context, e: jok.Event) !void {
 
 pub fn update(ctx: jok.Context) !void {
     _ = ctx;
-    try scheduler.runStages(&manager, Stage(Stages.PreUpdate), Stage(Stages.PostUpdate));
+    const eg = scheduler.runStages(&manager, Stage(Stages.PreUpdate), Stage(Stages.PostUpdate));
+    try eg.throw();
 }
 
 pub fn draw(ctx: jok.Context) !void {
     try ctx.renderer().clear(jok.Color.black);
-    try scheduler.runStages(&manager, Stage(Stages.PreDraw), Stage(Stages.PostDraw));
+    const eg = scheduler.runStages(&manager, Stage(Stages.PreDraw), Stage(Stages.PostDraw));
+    try eg.throw();
 
     const fps = ctx.fps();
 

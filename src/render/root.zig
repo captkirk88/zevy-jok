@@ -22,7 +22,7 @@ pub fn RenderPlugin(comptime EcsParamRegistry: ?type) type {
 
         pub fn build(self: *Self, manager: *ecs.Manager, plugins: *plugin.PluginManager) anyerror!void {
             _ = plugins;
-            _ = try manager.addResource(batchers.Batch, batchers.Batch.new(self.ctx));
+            try manager.addResourceRetained(batchers.Batch, batchers.Batch.new(self.ctx));
             if (manager.getResource(ecs.schedule.Scheduler)) |scheduler| {
                 const sched = scheduler.lockWrite();
                 defer sched.deinit();
