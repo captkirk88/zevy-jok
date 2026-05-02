@@ -1,6 +1,7 @@
 const std = @import("std");
 const jok = @import("jok");
 const ecs = @import("zevy_ecs");
+const reflect = @import("zevy_reflect");
 
 pub const Shape = union(enum) {
     Circle: jok.j2d.geom.Circle,
@@ -14,7 +15,7 @@ pub const Shape = union(enum) {
     Box: jok.j3d.geom.AABB,
     Triangle3D: jok.j3d.geom.Triangle,
 
-    const Tag = std.meta.Tag(Shape);
+    const Self = @This();
 
     pub fn circle(radius: f32) Shape {
         return .{ .Circle = .{ .radius = radius } };
@@ -57,21 +58,10 @@ pub const Shape = union(enum) {
         return .{ .Triangle3D = .{ .v0 = a.toArray(), .v1 = b.toArray(), .v2 = c.toArray() } };
     }
 
-    pub fn is2D(shape: anytype) bool {
-        return switch (@TypeOf(shape)) {
-            Shape => switch (shape) {
-                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
-                .Sphere, .Box, .Triangle3D => false,
-            },
-            *Shape, *const Shape => switch (shape.*) {
-                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
-                .Sphere, .Box, .Triangle3D => false,
-            },
-            Tag => switch (shape) {
-                .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
-                .Sphere, .Box, .Triangle3D => false,
-            },
-            else => @compileError("Shape.is2D expects Shape, *Shape, *const Shape, or Shape.Tag"),
+    pub fn is2D(self: *const Self) bool {
+        return switch (self.*) {
+            .Circle, .Rectangle, .Triangle, .Ellipse, .Line, .Point, .Ray => true,
+            .Sphere, .Box, .Triangle3D => false,
         };
     }
 
@@ -79,7 +69,7 @@ pub const Shape = union(enum) {
         return !is2D(shape);
     }
 
-    pub fn setOrigin(self: *Shape, origin: anytype) void {
+    pub fn setOrigin(self: *Self, origin: anytype) void {
         switch (@TypeOf(origin)) {
             jok.j2d.Vector => switch (self.*) {
                 .Circle => |*c| {
@@ -105,7 +95,7 @@ pub const Shape = union(enum) {
                 .Ray => |*ry| {
                     ry.origin = origin.toPoint();
                 },
-                else => unreachable,
+                else => {},
             },
             jok.j3d.Vector => switch (self.*) {
                 .Sphere => |*s| {
@@ -121,7 +111,7 @@ pub const Shape = union(enum) {
                 .Triangle3D => |*t| {
                     t.v0 = origin.toArray();
                 },
-                else => unreachable,
+                else => {},
             },
             else => @compileError("Shape.setOrigin expects jok.j2d.Vector or jok.j3d.Vector"),
         }
@@ -294,16 +284,16 @@ test "Shape.triangle3D constructs a 3D triangle" {
 
 test "Shape.is2D and Shape.is3D work at comptime" {
     comptime {
-        if (!Shape.is2D(@as(Shape.Tag, .Circle))) {
+        if (!Shape.circle(32).is2D()) {
             @compileError("Circle should be 2D");
         }
-        if (Shape.is3D(@as(Shape.Tag, .Circle))) {
+        if (Shape.circle(32).is3D()) {
             @compileError("Circle should not be 3D");
         }
-        if (Shape.is2D(@as(Shape.Tag, .Triangle3D))) {
+        if (Shape.triangle3D(.zero, .zero, .zero).is2D()) {
             @compileError("Triangle3D should not be 2D");
         }
-        if (!Shape.is3D(@as(Shape.Tag, .Triangle3D))) {
+        if (!Shape.triangle3D(.zero, .zero, .zero).is3D()) {
             @compileError("Triangle3D should be 3D");
         }
     }

@@ -43,47 +43,53 @@ pub const Batch = struct {
         self.pool3d.deinit();
     }
 
-    pub fn begin2d(self: *Batch) BatchPtr(.@"2D") {
+    pub fn begin2d(self: *Batch) *jok.j2d.Batch {
         return self.tryBegin2d() orelse @panic("failed to begin 2D render batch");
     }
 
-    pub fn tryBegin2d(self: *Batch) ?BatchPtr(.@"2D") {
+    pub fn tryBegin2d(self: *Batch) ?*jok.j2d.Batch {
+        if (self.current3d) |_| {
+            @panic("2D used while 3D batch is active");
+        }
         if (self.current2d) |b| {
             b.submit();
             self.current2d = null;
-        }
-        if (self.current3d) |b| {
-            b.abort();
-            self.current3d = null;
+            self.reclaim();
         }
         self.current2d = self.pool2d.new(.{}) catch return null;
         return self.current2d;
     }
 
     pub fn end2d(self: *Batch) void {
+        if (self.current3d) |_| {
+            @panic("2D used while 3D batch is active");
+        }
         if (self.current2d) |b| {
             b.submit();
             self.current2d = null;
         }
     }
 
-    pub fn begin3d(self: *Batch) BatchPtr(.@"3D") {
+    pub fn begin3d(self: *Batch) *jok.j3d.Batch {
         return self.tryBegin3d() orelse @panic("failed to begin 3D render batch");
     }
 
-    pub fn tryBegin3d(self: *Batch) ?BatchPtr(.@"3D") {
+    pub fn tryBegin3d(self: *Batch) ?*jok.j3d.Batch {
+        if (self.current2d) |_| {
+            @panic("3D used while 2D batch is active");
+        }
         if (self.current3d) |b| {
             b.submit();
             self.current3d = null;
         }
-        if (self.current2d) |b| {
-            b.abort();
-            self.current2d = null;
-        }
         self.current3d = self.pool3d.new(.{}) catch return null;
         return self.current3d;
     }
+
     pub fn end3d(self: *Batch) void {
+        if (self.current2d) |_| {
+            @panic("3D used while 2D batch is active");
+        }
         if (self.current3d) |b| {
             b.submit();
             self.current3d = null;

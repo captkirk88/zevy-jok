@@ -5,6 +5,7 @@ const jok = @import("jok");
 pub const batchers = @import("batch.zig");
 pub const components = @import("../components/root.zig");
 const math = @import("../math.zig");
+const zmesh = jok.vendor.zmesh;
 
 pub fn RenderPlugin(comptime EcsParamRegistry: ?type) type {
     const ParamRegistry = if (EcsParamRegistry) |t| t else ecs.DefaultParamRegistry;

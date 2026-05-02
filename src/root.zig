@@ -17,6 +17,11 @@ pub const sdl = @import("sdl");
 
 pub const math = @import("math.zig");
 
+pub const vendor = struct {
+    pub const jok = @import("jok");
+    pub const sdl = @import("sdl");
+};
+
 test {
     std.testing.refAllDecls(render);
     std.testing.refAllDecls(assets);

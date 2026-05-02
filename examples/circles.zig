@@ -183,6 +183,7 @@ fn createSphere(commands: Commands) !void {
     defer ent.deinit();
     const transform = zevy_jok.components.Transform.translation(math.Vector2.zero);
     try ent.add(zevy_jok.components.Transform, transform);
+    try ent.add(zevy_jok.components.Color, jok.Color.rgb(44, 44, 255));
     try ent.add(zevy_jok.components.shape.Shape, .sphere(32.0, transform.getTranslation()));
 }
 
