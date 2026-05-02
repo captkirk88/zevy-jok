@@ -1,6 +1,6 @@
 const std = @import("std");
 const buildtools = @import("zevy_buildtools");
-const jok = @import("jok");
+pub const jok = @import("jok");
 
 const CommonDeps = struct {
     zevy_mem: *std.Build.Module,
